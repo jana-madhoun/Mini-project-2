@@ -76,12 +76,12 @@ def evaluate_model(model, X_test_tfidf, y_test) -> None:
 # 5. Single-message prediction with confidence
 
 def predict_message(message: str, model, vectorizer) -> tuple[str, float]:
-    # Transform the raw text with the SAME vectorizer used during training.
+    # change the text with the same vectorizer used during training.
     features = vectorizer.transform([message])
 
     label = model.predict(features)[0]
 
-    # predict_proba gives a probability for each class; the confidence is the probability assigned to the predicted label.
+    # predict_proba gives a probability for each class - meaning the confidence is the probability assigned to the predicted label.
     probabilities = model.predict_proba(features)[0]
     confidence = max(probabilities) * 100
 

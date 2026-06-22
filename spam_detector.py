@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 
 
-# ── 1. Dataset loading ────────────────────────────────────────────────────────
+# 1. Dataset loading
 
 def load_dataset(path: str) -> pd.DataFrame:
     df = pd.read_csv(path)
@@ -23,7 +23,7 @@ def load_dataset(path: str) -> pd.DataFrame:
     return df
 
 
-# ── 2. Data visualisation ─────────────────────────────────────────────────────
+# 2. Data visualisation 
 
 def plot_distribution(df: pd.DataFrame, save_path: str = 'distribution.png') -> None:
     counts = df['label'].value_counts()
@@ -37,7 +37,7 @@ def plot_distribution(df: pd.DataFrame, save_path: str = 'distribution.png') -> 
     plt.close()
 
 
-# ── 3. Feature extraction + model training ────────────────────────────────────
+# 3. Feature extraction + model training
 
 def train_model(df: pd.DataFrame):
     X_train, X_test, y_train, y_test = train_test_split(
@@ -54,23 +54,57 @@ def train_model(df: pd.DataFrame):
     return model, vectorizer, X_test_tfidf, y_test
 
 
-# ── 4. Model evaluation ───────────────────────────────────────────────────────
+# 4. Model evaluation 
 
 def evaluate_model(model, X_test_tfidf, y_test) -> None:
-    # TODO: predict on X_test_tfidf, print accuracy and confusion matrix to terminal
-    raise NotImplementedError("evaluate_model not implemented")
+    y_pred = model.predict(X_test_tfidf)
+
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Accuracy: {accuracy * 100:.1f}%")
+
+    # Build the confusion matrix with an explicit label order so the printed rows/columns always match the Spam / Ham headers below.
+    labels = ['spam', 'ham']
+    cm = confusion_matrix(y_test, y_pred, labels=labels)
+
+    print("\nConfusion Matrix:")
+    print("                 Predicted")
+    print("              Spam    Ham")
+    print(f"Actual Spam   {cm[0][0]:>4}   {cm[0][1]:>4}")
+    print(f"Actual Ham    {cm[1][0]:>4}   {cm[1][1]:>4}")
 
 
-# ── 5. Single-message prediction with confidence ──────────────────────────────
+# 5. Single-message prediction with confidence
 
 def predict_message(message: str, model, vectorizer) -> tuple[str, float]:
-    # TODO: vectorize message, predict label and confidence, return (LABEL, confidence_percent)
-    raise NotImplementedError("predict_message not implemented")
+    # Transform the raw text with the SAME vectorizer used during training.
+    features = vectorizer.transform([message])
+
+    label = model.predict(features)[0]
+
+    # predict_proba gives a probability for each class; the confidence is the probability assigned to the predicted label.
+    probabilities = model.predict_proba(features)[0]
+    confidence = max(probabilities) * 100
+
+    return label.upper(), confidence
 
 
-# ── 6. Interactive prediction loop ────────────────────────────────────────────
+# 6. Interactive prediction loop 
 
 def interactive_loop(model, vectorizer) -> None:
-    # TODO: loop reading user input, call predict_message, print label + confidence; exit on 'quit'
-    raise NotImplementedError("interactive_loop not implemented")
+    print("\nType 'quit' to exit.")
+
+    while True:
+        message = input("\nEnter message:\n").strip()
+
+        if message.lower() == 'quit':
+            print("Goodbye!")
+            break
+
+        if not message:
+            print("Please enter a non-empty message.")
+            continue
+
+        label, confidence = predict_message(message, model, vectorizer)
+        print(f"Prediction: {label}")
+        print(f"Confidence: {confidence:.1f}%")
 
